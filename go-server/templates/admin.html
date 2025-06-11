@@ -1,15 +1,23 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
 <body>
-    <h2>Admin Panel</h2>
-    <p>Welcome, {{.user}}</p>
-    <a href="/logout">Logout</a>
-    <table border="1">
-        <tr><th>ID</th><th>Username</th><th>Admin</th></tr>
-        {{range .users}}
-        <tr>
-            <td>{{.ID}}</td><td>{{.Username}}</td><td>{{.Admin}}</td>
-        </tr>
-        {{end}}
-    </table>
+    <div class="admin-container">
+        <h2>Admin Panel</h2>
+        <p>Welcome, {{.user}}</p>
+        <a class="link" href="/logout">Logout</a>
+        <table>
+            <tr><th>ID</th><th>Username</th><th>Admin</th></tr>
+            {{range .users}}
+            <tr>
+                <td>{{.ID}}</td><td>{{.Username}}</td><td>{{.Admin}}</td>
+            </tr>
+            {{end}}
+        </table>
+    </div>
 </body>
 </html>

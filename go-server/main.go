@@ -34,6 +34,8 @@ func main() {
 	r.Use(sessions.Sessions("bbb-session", store))
 
 	r.LoadHTMLGlob("templates/*")
+	r.Static("/static", "./static")
+	r.Static("/fonts", "../fonts")
 
 	r.GET("/register", showRegister)
 	r.POST("/register", register)
