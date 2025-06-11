@@ -4,6 +4,7 @@ import os
 import urllib.request
 import json
 from distutils.dir_util import copy_tree
+import shutil
 import traceback
 import re
 from datetime import timedelta
@@ -28,7 +29,10 @@ try:
     smartDlEnabled = True
 except ImportError:
     logger.warning("pySmartDL not imported, using urllib instead")
-    smartDlEnabled = False
+smartDlEnabled = False
+
+# Optional authentication cookie used for downloads
+COOKIE_VALUE = None
 
 
 def ffmpegCombine(suffix, fileName=DEFAULT_COMBINED_VIDEO_NAME):
@@ -63,12 +67,15 @@ def downloadFiles(baseURL, basePath):
         logger.debug(savePath)
 
         try:
-            if smartDlEnabled:
+            if smartDlEnabled and COOKIE_VALUE is None:
                 smartDl = SmartDL(downloadURL, savePath)
                 smartDl.start()
             else:
-                urllib.request.urlretrieve(
-                    downloadURL, savePath, reporthook=bar.on_urlretrieve if bar else None)
+                req = urllib.request.Request(downloadURL)
+                if COOKIE_VALUE:
+                    req.add_header('Cookie', COOKIE_VALUE)
+                with urllib.request.urlopen(req) as resp, open(savePath, 'wb') as out_fp:
+                    shutil.copyfileobj(resp, out_fp)
         except urllib.error.HTTPError as e:
             # traceback.print_exc()
             if e.code == 404:
@@ -99,13 +106,16 @@ def downloadSlides(baseURL, basePath):
                 logger.debug(savePath)
 
                 try:
-                    if smartDlEnabled:
+                    if smartDlEnabled and COOKIE_VALUE is None:
                         smartDl = SmartDL(
                             downloadURL, savePath, progress_bar=False)
                         smartDl.start()
                     else:
-                        urllib.request.urlretrieve(
-                            downloadURL, savePath, reporthook=bar.on_urlretrieve if bar else None)
+                        req = urllib.request.Request(downloadURL)
+                        if COOKIE_VALUE:
+                            req.add_header('Cookie', COOKIE_VALUE)
+                        with urllib.request.urlopen(req) as resp, open(savePath, 'wb') as out_fp:
+                            shutil.copyfileobj(resp, out_fp)
                 except urllib.error.HTTPError as e:
                     # traceback.print_exc()
                     if e.code == 404:
@@ -129,13 +139,16 @@ def downloadSlides(baseURL, basePath):
                 logger.debug(f"Download path:\t{savePath}")
 
                 try:
-                    if smartDlEnabled:
+                    if smartDlEnabled and COOKIE_VALUE is None:
                         smartDl = SmartDL(
                             downloadURL, savePath, progress_bar=False)
                         smartDl.start()
                     else:
-                        urllib.request.urlretrieve(
-                            downloadURL, savePath, reporthook=bar.on_urlretrieve if bar else None)
+                        req = urllib.request.Request(downloadURL)
+                        if COOKIE_VALUE:
+                            req.add_header('Cookie', COOKIE_VALUE)
+                        with urllib.request.urlopen(req) as resp, open(savePath, 'wb') as out_fp:
+                            shutil.copyfileobj(resp, out_fp)
                 except urllib.error.HTTPError as e:
                     # traceback.print_exc()
                     if e.code == 404:
@@ -201,8 +214,9 @@ def create_app():
         if form["meeting-name"] and form["meeting-url"]:
             name = form["meeting-name"].strip().replace(" ", "_")
             url = form["meeting-url"].strip()
+            cookie = form.get("meeting-cookie", "").strip()
 
-            downloadScript(url, name)
+            downloadScript(url, name, cookie if cookie else None)
 
             message = " دانلود جلسه " + name + " ناموفق بود، لطفا مجددا تلاش نمایید."
 
@@ -246,7 +260,10 @@ def create_app():
     return app
 
 
-def downloadScript(inputURL, meetingNameWanted):
+def downloadScript(inputURL, meetingNameWanted, cookie=None):
+    global COOKIE_VALUE, bar
+    COOKIE_VALUE = cookie
+    bar = None
     # get meeting id from url https://regex101.com/r/UjqGeo/3
     matchesURL = re.search(r"/?(\d+\.\d+)/.*?([0-9a-f]{40}-\d{13})/?",
                            inputURL,
