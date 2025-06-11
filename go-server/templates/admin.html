@@ -1,0 +1,15 @@
+<html>
+<body>
+    <h2>Admin Panel</h2>
+    <p>Welcome, {{.user}}</p>
+    <a href="/logout">Logout</a>
+    <table border="1">
+        <tr><th>ID</th><th>Username</th><th>Admin</th></tr>
+        {{range .users}}
+        <tr>
+            <td>{{.ID}}</td><td>{{.Username}}</td><td>{{.Admin}}</td>
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>
